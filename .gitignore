@@ -33,6 +33,7 @@ migrate_working_dir/
 /build/
 /coverage/
 
+seed_firestore.dart
 # Symbolication related
 app.*.symbols
 
