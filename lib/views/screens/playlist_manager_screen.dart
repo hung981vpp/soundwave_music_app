@@ -24,6 +24,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
   }
 
   void _showCreateDialog(BuildContext context) {
+    final formKey = GlobalKey<FormState>();
     final nameCtrl = TextEditingController();
     final descCtrl = TextEditingController();
 
@@ -34,35 +35,54 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
         title: Text('Tạo Playlist mới',
             style: GoogleFonts.nunito(
                 color: Colors.white, fontWeight: FontWeight.bold)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameCtrl,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Tên Playlist',
-                labelStyle: TextStyle(color: Colors.white54),
-                enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white24)),
-                focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFFF5500))),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: nameCtrl,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  labelText: 'Tên Playlist *',
+                  labelStyle: TextStyle(color: Colors.white54),
+                  enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white24)),
+                  focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFFFF5500))),
+                  errorBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.redAccent)),
+                  focusedErrorBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.redAccent)),
+                  errorStyle: TextStyle(color: Colors.redAccent, fontSize: 11),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Vui lòng nhập tên playlist';
+                  }
+                  if (value.trim().length < 2) {
+                    return 'Tên playlist phải có ít nhất 2 ký tự';
+                  }
+                  return null;
+                },
+                autovalidateMode: AutovalidateMode.onUserInteraction,
               ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: descCtrl,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Mô tả (tùy chọn)',
-                labelStyle: TextStyle(color: Colors.white54),
-                enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white24)),
-                focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFFF5500))),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: descCtrl,
+                style: const TextStyle(color: Colors.white),
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  labelText: 'Mô tả (tùy chọn)',
+                  labelStyle: TextStyle(color: Colors.white54),
+                  enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white24)),
+                  focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFFFF5500))),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -71,12 +91,21 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
           ),
           TextButton(
             onPressed: () {
-              final name = nameCtrl.text.trim();
-              if (name.isNotEmpty) {
+              if (formKey.currentState!.validate()) {
+                final name = nameCtrl.text.trim();
                 context
                     .read<PlaylistProvider>()
                     .createPlaylist(name, descCtrl.text.trim());
                 Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Đã tạo playlist "$name"',
+                        style: GoogleFonts.nunito()),
+                    backgroundColor: const Color(0xFFFF5500),
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
               }
             },
             child: const Text('Tạo',
@@ -170,6 +199,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
   }
 
   void _showEditDialog(BuildContext context, Playlist playlist) {
+    final formKey = GlobalKey<FormState>();
     final nameCtrl = TextEditingController(text: playlist.name);
     final descCtrl = TextEditingController(text: playlist.description);
 
@@ -180,35 +210,54 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
         title: Text('Chỉnh sửa Playlist',
             style: GoogleFonts.nunito(
                 color: Colors.white, fontWeight: FontWeight.bold)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameCtrl,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Tên Playlist',
-                labelStyle: TextStyle(color: Colors.white54),
-                enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white24)),
-                focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFFF5500))),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: nameCtrl,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  labelText: 'Tên Playlist *',
+                  labelStyle: TextStyle(color: Colors.white54),
+                  enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white24)),
+                  focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFFFF5500))),
+                  errorBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.redAccent)),
+                  focusedErrorBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.redAccent)),
+                  errorStyle: TextStyle(color: Colors.redAccent, fontSize: 11),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Vui lòng nhập tên playlist';
+                  }
+                  if (value.trim().length < 2) {
+                    return 'Tên playlist phải có ít nhất 2 ký tự';
+                  }
+                  return null;
+                },
+                autovalidateMode: AutovalidateMode.onUserInteraction,
               ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: descCtrl,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Mô tả',
-                labelStyle: TextStyle(color: Colors.white54),
-                enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white24)),
-                focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFFF5500))),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: descCtrl,
+                style: const TextStyle(color: Colors.white),
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  labelText: 'Mô tả',
+                  labelStyle: TextStyle(color: Colors.white54),
+                  enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white24)),
+                  focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFFFF5500))),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -217,8 +266,8 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
           ),
           TextButton(
             onPressed: () {
-              final name = nameCtrl.text.trim();
-              if (name.isNotEmpty) {
+              if (formKey.currentState!.validate()) {
+                final name = nameCtrl.text.trim();
                 final updated = Playlist(
                   id: playlist.id,
                   name: name,
@@ -228,6 +277,15 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                 );
                 context.read<PlaylistProvider>().updatePlaylist(updated);
                 Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Đã cập nhật playlist "$name"',
+                        style: GoogleFonts.nunito()),
+                    backgroundColor: const Color(0xFFFF5500),
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
               }
             },
             child: const Text('Lưu',
