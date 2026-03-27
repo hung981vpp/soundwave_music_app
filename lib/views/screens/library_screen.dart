@@ -51,25 +51,7 @@ class _LibraryScreenState extends State<LibraryScreen>
                     color: AppColors.of(context).textPrimary,
                     fontSize: 22,
                     fontWeight: FontWeight.w800)),
-            actions: [
-              IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: AppColors.of(context).inputFill,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(Icons.add_rounded,
-                      color: AppColors.of(context).textPrimary, size: 20),
-                ),
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const PlaylistManagerScreen()),
-                ),
-              ),
-              const SizedBox(width: 6),
-            ],
+
             bottom: TabBar(
               controller: _tabCtrl,
               indicatorColor: AppColors.brand,
@@ -119,7 +101,7 @@ class _LibraryScreenState extends State<LibraryScreen>
                 style: GoogleFonts.nunito(
                     color: AppColors.of(context).textTertiary, fontSize: 15)),
             const SizedBox(height: 8),
-            Text('Khám phá và lưu nhạc từ SoundCloud',
+            Text('Khám phá và lưu nhạc từ SoundWave',
                 style: GoogleFonts.nunito(
                     color: AppColors.of(context).textDisabled, fontSize: 12)),
           ],

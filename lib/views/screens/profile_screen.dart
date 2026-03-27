@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +8,10 @@ import '../../providers/player_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../utils/app_colors.dart';
 import 'login_screen.dart';
+import 'profile_detail_screen.dart';
+import 'notifications_screen.dart';
+import 'privacy_screen.dart';
+import 'help_support_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -19,7 +24,8 @@ class ProfileScreen extends StatelessWidget {
     final themeProvider = context.watch<ThemeProvider>();
 
     final email = auth.currentUser?.email ?? 'Người dùng';
-    final username = email.split('@').first;
+    final pName = auth.currentUser?.displayName;
+    final username = (pName != null && pName.isNotEmpty) ? pName : email.split('@').first;
 
     return Scaffold(
       backgroundColor: AppColors.of(context).bg,
@@ -49,11 +55,12 @@ class ProfileScreen extends StatelessWidget {
                     height: 90,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: const LinearGradient(
+                      color: AppColors.brand.withOpacity(0.1),
+                      gradient: auth.avatarBase64 == null ? const LinearGradient(
                         colors: [Color(0xFFFF5500), Color(0xFFCA2C92)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                      ),
+                      ) : null,
                       boxShadow: [
                         BoxShadow(
                           color: const Color(0xFFFF5500).withOpacity(0.4),
@@ -61,8 +68,14 @@ class ProfileScreen extends StatelessWidget {
                           spreadRadius: 2,
                         )
                       ],
+                      image: auth.avatarBase64 != null
+                          ? DecorationImage(
+                              image: MemoryImage(base64Decode(auth.avatarBase64!)),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
                     ),
-                    child: Center(
+                    child: auth.avatarBase64 == null ? Center(
                       child: Text(
                         username.isNotEmpty
                             ? username[0].toUpperCase()
@@ -73,7 +86,7 @@ class ProfileScreen extends StatelessWidget {
                           fontWeight: FontWeight.w800,
                         ),
                       ),
-                    ),
+                    ) : null,
                   ),
                   const SizedBox(height: 14),
                   Text(
@@ -89,20 +102,6 @@ class ProfileScreen extends StatelessWidget {
                     email,
                     style: GoogleFonts.nunito(
                         color: AppColors.of(context).textSecondary, fontSize: 13),
-                  ),
-                  const SizedBox(height: 18),
-                  // Stats row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _Stat(
-                          label: 'Bài hát',
-                          value: '${songProvider.songs.length}'),
-                      _divider(context),
-                      const _Stat(label: 'Follows', value: '–'),
-                      _divider(context),
-                      const _Stat(label: 'Followers', value: '–'),
-                    ],
                   ),
                 ],
               ),
@@ -161,17 +160,23 @@ class ProfileScreen extends StatelessWidget {
                 _Tile(
                   icon: Icons.person_outline_rounded,
                   label: 'Hồ sơ',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileDetailScreen()));
+                  },
                 ),
                 _Tile(
                   icon: Icons.notifications_outlined,
                   label: 'Thông báo',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+                  },
                 ),
                 _Tile(
                   icon: Icons.lock_outline_rounded,
                   label: 'Riêng tư & Bảo mật',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyScreen()));
+                  },
                 ),
               ],
             ),
@@ -228,12 +233,16 @@ class ProfileScreen extends StatelessWidget {
                 _Tile(
                   icon: Icons.star_outline_rounded,
                   label: 'Đánh giá ứng dụng',
-                  onTap: () {},
+                  onTap: () {
+                    _showAppRatingDialog(context);
+                  },
                 ),
                 _Tile(
                   icon: Icons.help_outline_rounded,
                   label: 'Trợ giúp & Hỗ trợ',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpSupportScreen()));
+                  },
                 ),
               ],
             ),
@@ -324,70 +333,108 @@ class ProfileScreen extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       color: AppColors.of(context).divider);
 
-  void _showAudioQualityDialog(
-      BuildContext context, ThemeProvider provider) {
+  void _showAudioQualityDialog(BuildContext context, ThemeProvider themeProvider) {
+    final c = AppColors.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.of(context).surface1,
+      backgroundColor: c.bg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.white24,
-                borderRadius: BorderRadius.circular(2),
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text('Chất lượng âm thanh',
+                    style: GoogleFonts.nunito(
+                        color: c.textPrimary,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
               ),
-            ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text('Chất lượng âm thanh',
-                  style: GoogleFonts.nunito(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700)),
-            ),
-            const SizedBox(height: 8),
-            _QualityTile(
-              label: 'Thấp',
-              description: 'Tiết kiệm data, chất lượng cơ bản',
-              quality: AudioQuality.low,
-              selected: provider.audioQuality,
-              onTap: () {
-                provider.setAudioQuality(AudioQuality.low);
-                Navigator.pop(ctx);
-              },
-            ),
-            _QualityTile(
-              label: 'Trung bình',
-              description: 'Cân bằng giữa chất lượng và data',
-              quality: AudioQuality.medium,
-              selected: provider.audioQuality,
-              onTap: () {
-                provider.setAudioQuality(AudioQuality.medium);
-                Navigator.pop(ctx);
-              },
-            ),
-            _QualityTile(
-              label: 'Cao',
-              description: 'Âm thanh tốt nhất, tốn nhiều data hơn',
-              quality: AudioQuality.high,
-              selected: provider.audioQuality,
-              onTap: () {
-                provider.setAudioQuality(AudioQuality.high);
-                Navigator.pop(ctx);
-              },
-            ),
-            const SizedBox(height: 12),
-          ],
+              _QualityTile(
+                label: 'Thấp',
+                description: 'Tiết kiệm dữ liệu (96 kbps)',
+                quality: AudioQuality.low,
+                selected: themeProvider.audioQuality,
+                onTap: () {
+                  themeProvider.setAudioQuality(AudioQuality.low);
+                  Navigator.pop(ctx);
+                },
+              ),
+              _QualityTile(
+                label: 'Trung bình',
+                description: 'Cân bằng (160 kbps)',
+                quality: AudioQuality.medium,
+                selected: themeProvider.audioQuality,
+                onTap: () {
+                  themeProvider.setAudioQuality(AudioQuality.medium);
+                  Navigator.pop(ctx);
+                },
+              ),
+              _QualityTile(
+                label: 'Cao',
+                description: 'Âm thanh sắc nét (320 kbps)',
+                quality: AudioQuality.high,
+                selected: themeProvider.audioQuality,
+                onTap: () {
+                  themeProvider.setAudioQuality(AudioQuality.high);
+                  Navigator.pop(ctx);
+                },
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showAppRatingDialog(BuildContext context) {
+    final c = AppColors.of(context);
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: c.surface1,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Center(
+          child: Column(
+            children: [
+              const Icon(Icons.star_rounded, color: Color(0xFFFF5500), size: 48),
+              const SizedBox(height: 12),
+              Text('Đánh giá ứng dụng',
+                  style: GoogleFonts.nunito(color: c.textPrimary, fontWeight: FontWeight.bold, fontSize: 18)),
+            ],
+          ),
         ),
+        content: Text('Bạn có thích SoundWave không? Đánh giá 5 sao trên cửa hàng ứng dụng để ủng hộ chúng tôi nhé!',
+            style: GoogleFonts.nunito(color: c.textSecondary, fontSize: 14), textAlign: TextAlign.center),
+        actionsAlignment: MainAxisAlignment.spaceEvenly,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Để sau', style: GoogleFonts.nunito(color: c.textSecondary, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF5500),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Cảm ơn bạn đã phản hồi!', style: GoogleFonts.nunito()),
+                  backgroundColor: const Color(0xFFFF5500),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            child: Text('Đánh giá ngay', style: GoogleFonts.nunito(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
-import 'data/database_helper.dart';
 import 'providers/song_provider.dart';
 import 'providers/playlist_provider.dart';
 import 'providers/player_provider.dart';
@@ -12,10 +12,22 @@ import 'providers/discover_provider.dart';
 import 'providers/home_provider.dart';
 import 'app.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // Đã xóa dòng clearAllSongs() để giữ dữ liệu khi restart
+
+  try {
+    await JustAudioBackground.init(
+      androidNotificationChannelId: 'com.soundwave.music.channel.audio',
+      androidNotificationChannelName: 'SoundWave',
+      androidNotificationOngoing: true,
+      androidStopForegroundOnPause: true,
+      notificationColor: const Color(0xFFFF5500),
+      androidNotificationIcon: 'mipmap/ic_launcher',
+    );
+  } catch (e) {
+    debugPrint('Init audio background failed: $e');
+  }
 
   runApp(
     MultiProvider(
